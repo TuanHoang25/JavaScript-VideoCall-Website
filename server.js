@@ -2,11 +2,11 @@ import express from "express";
 import http from "http";
 import { Server } from "socket.io";
 import { v4 as uuidV4 } from "uuid";
-import { ExpressPeerServer } from "peer";
+import { PeerServer } from "peer";
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
-const peerServer = ExpressPeerServer(server, {
+const peerServer = PeerServer({
   path: "/peerjs",
 });
 const users = {}; // Store user names
