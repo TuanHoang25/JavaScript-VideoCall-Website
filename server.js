@@ -6,20 +6,27 @@ import { PeerServer } from "peer";
 const app = express();
 const server = http.createServer(app);
 // const io = new Server(server);
+app.use(cors({
+  origin: 'https://ltm-1.onrender.com',
+  methods: ['GET', 'POST'],
+  credentials: true
+}));
 const io = new Server(server, {
   cors: {
     origin: "https://ltm-1.onrender.com", // Đảm bảo origin chính xác
-    methods: ["GET", "POST"]
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 const peerServer = PeerServer({
-  path: "/peerjs",
-  port: 443,
-  proxied: true
+  port: process.env.PORT || 3000,  // Sử dụng cùng port với server
+  path: '/myapp',                  // Đổi path để tránh xung đột
+  proxied: true,
+  debug: true                      // Thêm debug để dễ theo dõi lỗi
 });
 const users = {}; // Store user names
 const roomUsers = {}; // Store number of users in each room
-app.use("/peerjs", peerServer);
+app.use("/myapp", peerServer);
 app.set("view engine", "ejs");
 app.use(express.static("public"));
 

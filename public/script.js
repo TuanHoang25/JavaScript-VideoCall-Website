@@ -28,10 +28,8 @@ const peers = {};
 
 // Sử dụng trên Render
 const myPeer = new Peer(undefined, {
-  host: "ltm-1.onrender.com", // Thay bằng hostname của Render app
-  path: "/peerjs",
-  secure: true,
-  port: 443
+  cloud: true, // Thay bằng hostname của Render app
+  debug:3
 });
 
 
