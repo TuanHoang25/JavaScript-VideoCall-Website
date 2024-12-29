@@ -5,7 +5,13 @@ import { v4 as uuidV4 } from "uuid";
 import { PeerServer } from "peer";
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+// const io = new Server(server);
+const io = new Server(server, {
+  cors: {
+    origin: "https://ltm-1.onrender.com", // Đảm bảo origin chính xác
+    methods: ["GET", "POST"]
+  }
+});
 const peerServer = PeerServer({
   path: "/peerjs",
 });
