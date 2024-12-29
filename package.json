@@ -1,0 +1,26 @@
+{
+  "name": "spaceonlinemeeting",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "build": "",
+    "start": "nodemon server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "concurrently": "^9.1.1",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "peerjs": "^1.5.4",
+    "socket.io": "^4.8.1",
+    "uuid": "^11.0.3"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "nodemon": "^3.1.9"
+  }
+}
