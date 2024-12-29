@@ -1,4 +1,4 @@
-const socket = io("/https://ltm-1.onrender.com");
+const socket = io("https://ltm-1.onrender.com");
 const videoGrid = document.getElementById("video-grid");
 const chatBox = document.getElementById("chat-box");
 const messageInput = document.getElementById("message-input");
@@ -29,8 +29,6 @@ const peers = {};
 const myPeer = new Peer(undefined, {
   host: "https://ltm-1.onrender.com", // Thay bằng hostname của Render app
   path: "/peerjs",
-  port: false, // Không chỉ định cổng vì Render sử dụng HTTPS (443)
-  secure: true, // Đảm bảo sử dụng HTTPS
 });
 
 
