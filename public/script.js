@@ -15,15 +15,25 @@ let myName;
 let myStream;
 const peers = {};
 // chay local thì chạy 3 dong dưới đây
-const myPeer = new Peer(undefined, {
-  host: "/",
-  port: "3001",
-});
+// const myPeer = new Peer(undefined, {
+//   host: "/",
+//   port: "3001",
+// });
 //chạy trên mạng
 // const myPeer = new Peer(undefined, {
 //   host: "amazdo.com",
 //   path: "/peerjs",
 // });
+
+// Sử dụng trên Render
+const myPeer = new Peer(undefined, {
+  host: "https://ltm-1.onrender.com", // Thay bằng hostname của Render app
+  path: "/peerjs",
+  port: false, // Không chỉ định cổng vì Render sử dụng HTTPS (443)
+  secure: true, // Đảm bảo sử dụng HTTPS
+});
+ccdasas
+
 const myVideo = document.createElement("video");
 myVideo.muted = true;
 
