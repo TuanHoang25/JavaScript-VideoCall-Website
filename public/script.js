@@ -32,7 +32,7 @@ const myPeer = new Peer(undefined, {
   port: false, // Không chỉ định cổng vì Render sử dụng HTTPS (443)
   secure: true, // Đảm bảo sử dụng HTTPS
 });
-ccdasas
+
 
 const myVideo = document.createElement("video");
 myVideo.muted = true;
