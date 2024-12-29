@@ -2,13 +2,12 @@ import express from "express";
 import http from "http";
 import { Server } from "socket.io";
 import { v4 as uuidV4 } from "uuid";
-import { PeerServer } from "peer";
+import { ExpressPeerServer } from "peer";
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
-const peerServer = PeerServer({
+const peerServer = ExpressPeerServer(server, {
   path: "/peerjs",
-  allow_discovery: true, // Cho phép tìm kiếm các peer
 });
 const users = {}; // Store user names
 const roomUsers = {}; // Store number of users in each room
