@@ -1,3 +1,5 @@
+import Peer from "peerjs";
+
 const socket = io("https://ltm-1.onrender.com");
 const videoGrid = document.getElementById("video-grid");
 const chatBox = document.getElementById("chat-box");
