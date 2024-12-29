@@ -14,6 +14,8 @@ const io = new Server(server, {
 });
 const peerServer = PeerServer({
   path: "/peerjs",
+  port: 443,
+  proxied: true
 });
 const users = {}; // Store user names
 const roomUsers = {}; // Store number of users in each room
