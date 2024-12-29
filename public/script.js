@@ -1,4 +1,4 @@
-const socket = io("/");
+const socket = io("/https://ltm-1.onrender.com");
 const videoGrid = document.getElementById("video-grid");
 const chatBox = document.getElementById("chat-box");
 const messageInput = document.getElementById("message-input");

@@ -2,14 +2,17 @@ import express from "express";
 import http from "http";
 import { Server } from "socket.io";
 import { v4 as uuidV4 } from "uuid";
-
+import { PeerServer } from "peer";
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
-
+const peerServer = PeerServer({
+  path: "/peerjs",
+  allow_discovery: true, // Cho phép tìm kiếm các peer
+});
 const users = {}; // Store user names
 const roomUsers = {}; // Store number of users in each room
-
+app.use("/peerjs", peerServer);
 app.set("view engine", "ejs");
 app.use(express.static("public"));
 
@@ -71,4 +74,8 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(3000);
+const PORT = process.env.PORT || 3000; // Sử dụng cổng từ biến môi trường hoặc mặc định là 3000
+server.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
+
