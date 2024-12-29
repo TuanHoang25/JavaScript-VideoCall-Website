@@ -20,7 +20,7 @@ const io = new Server(server, {
   }
 });
 const peerServer = PeerServer({
-  port: process.env.PORT || 3000,  // Sử dụng cùng port với server
+  port: 9000,  // Sử dụng cùng port với server
   path: '/myapp',                  // Đổi path để tránh xung đột
   proxied: true,
   debug: true                      // Thêm debug để dễ theo dõi lỗi
