@@ -74,6 +74,14 @@ micButton.addEventListener("click", () => {
     audioTracks[0].enabled = !enabled;
     micButton.querySelector("span").textContent = enabled ? "mic_off" : "mic";
 
+    // Cập nhật trạng thái micro cho video của chính mình
+    const myContainer = document.getElementById('video-container-me');
+    if (myContainer) {
+      const micIcon = myContainer.querySelector('.mic-status');
+      micIcon.textContent = !enabled ? 'mic' : 'mic_off';
+      micIcon.classList.toggle('mic-off', enabled);
+    }
+
     // Gửi trạng thái micro đến server
     socket.emit("toggle-mic", !enabled);
   }
@@ -138,26 +146,83 @@ socket.on("message-input-container", (name) => {
   }, 3000);
 });
 
-function connectToNewUser(userId, stream) {
+function connectToNewUser(userId, stream, userName) {
   const call = myPeer.call(userId, stream);
-  const video = document.createElement("video");
-  call.on("stream", (userVideoStream) => {
-    addVideoStream(video, userVideoStream);
+  const video = document.createElement('video');
+  
+  call.on('stream', (userVideoStream) => {
+    addVideoStream(video, userVideoStream, userId, userName);
   });
-  call.on("close", () => {
-    video.remove();
+  
+  call.on('close', () => {
+    const container = document.getElementById(`video-container-${userId}`);
+    if (container) container.remove();
   });
 
-  peers[userId] = call;
+  peers[userId] = {
+    call,
+    stream: stream,
+    micEnabled: true
+  };
 }
 
-function addVideoStream(video, stream) {
+// function addVideoStream(video, stream) {
+//   video.srcObject = stream;
+//   video.addEventListener("loadedmetadata", () => {
+//     video.play();
+//   });
+//   videoGrid.append(video);
+// }
+
+
+function addVideoStream(video, stream, userId = 'me', userName = myName) {
+  // Tạo container cho video và thông tin người dùng
+  const container = document.createElement('div');
+  container.className = 'video-container';
+  container.id = `video-container-${userId}`;
+
+  // Thêm video vào container
   video.srcObject = stream;
-  video.addEventListener("loadedmetadata", () => {
+  video.addEventListener('loadedmetadata', () => {
     video.play();
   });
-  videoGrid.append(video);
+  container.appendChild(video);
+
+  // Thêm thông tin người dùng
+  const userInfo = document.createElement('div');
+  userInfo.className = 'user-info';
+  
+  const nameSpan = document.createElement('span');
+  nameSpan.className = 'user-name';
+  nameSpan.textContent = userName;
+
+  const micStatus = document.createElement('span');
+  micStatus.className = 'mic-status material-icons';
+  micStatus.textContent = 'mic'; // Mặc định là mic bật
+
+  userInfo.appendChild(nameSpan);
+  userInfo.appendChild(micStatus);
+  container.appendChild(userInfo);
+
+  videoGrid.append(container);
+
+  // Lưu trữ thông tin về trạng thái micro
+  if (!peers[userId]) {
+    peers[userId] = {
+      stream: stream,
+      micEnabled: true
+    };
+  }
 }
+
+socket.on('mic-toggle', (userId, enabled) => {
+  const container = document.getElementById(`video-container-${userId}`);
+  if (container) {
+    const micIcon = container.querySelector('.mic-status');
+    micIcon.textContent = enabled ? 'mic' : 'mic_off';
+    micIcon.classList.toggle('mic-off', !enabled);
+  }
+});
 
 function appendMessage(message) {
   const messageElement = document.createElement("div");
