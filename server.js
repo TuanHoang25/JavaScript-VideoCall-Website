@@ -8,9 +8,14 @@ const server = http.createServer(app);
 // const io = new Server(server);
 const io = new Server(server, {
   cors: {
-    origin: "https://ltm-1.onrender.com", // Đảm bảo origin chính xác
-    methods: ["GET", "POST"]
-  }
+    origin: "*", // Cho phép tất cả các origin
+    methods: ["GET", "POST"],
+    credentials: true,
+    transports: ['websocket', 'polling'] // Thêm dòng này
+  },
+  allowEIO3: true, // Cho phép Engine.IO phiên bản 3
+  path: '/socket.io/', // Đảm bảo path đúng
+  pingTimeout: 60000, // Tăng timeout
 });
 const peerServer = ExpressPeerServer(server, {
   path: "/peerjs",
@@ -18,6 +23,13 @@ const peerServer = ExpressPeerServer(server, {
 });
 const users = {}; // Store user names
 const roomUsers = {}; // Store number of users in each room
+
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  next();
+});
 app.use("/peerjs", peerServer);
 app.set("view engine", "ejs");
 app.use(express.static("public"));
