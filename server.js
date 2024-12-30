@@ -70,7 +70,7 @@ io.on("connection", (socket) => {
     });
     // Handle microphone toggle
     socket.on("toggle-mic", (enabled) => {
-      socket.to(roomId).emit("mic-toggle", userId, enabled);
+      socket.to(roomId).emit("mic-toggle", socket.id, enabled);
     });
 
     // Handle camera toggle

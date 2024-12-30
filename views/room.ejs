@@ -142,22 +142,31 @@
       position: absolute;
       bottom: 10px;
       left: 10px;
+      right: 10px;
       background: rgba(0, 0, 0, 0.7);
-      padding: 5px 10px;
+      padding: 8px;
       border-radius: 4px;
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 8px;
+      z-index: 1;
     }
 
     .user-name {
       color: white;
       font-size: 14px;
+      font-weight: 500;
+      margin-right: 8px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .mic-status {
       color: white;
       font-size: 18px;
+      min-width: 24px;
+      text-align: center;
     }
 
     .mic-off {

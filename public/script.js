@@ -147,6 +147,12 @@ socket.on("message-input-container", (name) => {
 });
 
 function connectToNewUser(userId, stream, userName) {
+  // Kiểm tra xem đã có kết nối với user này chưa
+  if (peers[userId]) {
+    console.log('Already connected to:', userId);
+    return;
+  }
+
   const call = myPeer.call(userId, stream);
   const video = document.createElement('video');
   
@@ -156,7 +162,9 @@ function connectToNewUser(userId, stream, userName) {
   
   call.on('close', () => {
     const container = document.getElementById(`video-container-${userId}`);
-    if (container) container.remove();
+    if (container) {
+      container.remove();
+    }
   });
 
   peers[userId] = {
@@ -176,12 +184,18 @@ function connectToNewUser(userId, stream, userName) {
 
 
 function addVideoStream(video, stream, userId = 'me', userName = myName) {
-  // Tạo container cho video và thông tin người dùng
+  // Kiểm tra xem container đã tồn tại chưa
+  const existingContainer = document.getElementById(`video-container-${userId}`);
+  if (existingContainer) {
+    return; // Nếu đã tồn tại thì không tạo mới
+  }
+
+  // Tạo container mới
   const container = document.createElement('div');
   container.className = 'video-container';
   container.id = `video-container-${userId}`;
 
-  // Thêm video vào container
+  // Thêm video
   video.srcObject = stream;
   video.addEventListener('loadedmetadata', () => {
     video.play();
@@ -194,25 +208,17 @@ function addVideoStream(video, stream, userId = 'me', userName = myName) {
   
   const nameSpan = document.createElement('span');
   nameSpan.className = 'user-name';
-  nameSpan.textContent = userName;
+  nameSpan.textContent = userName || 'Unknown User';
 
   const micStatus = document.createElement('span');
   micStatus.className = 'mic-status material-icons';
-  micStatus.textContent = 'mic'; // Mặc định là mic bật
+  micStatus.textContent = 'mic';
 
   userInfo.appendChild(nameSpan);
   userInfo.appendChild(micStatus);
   container.appendChild(userInfo);
 
-  videoGrid.append(container);
-
-  // Lưu trữ thông tin về trạng thái micro
-  if (!peers[userId]) {
-    peers[userId] = {
-      stream: stream,
-      micEnabled: true
-    };
-  }
+  videoGrid.appendChild(container);
 }
 
 socket.on('mic-toggle', (userId, enabled) => {
