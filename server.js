@@ -86,6 +86,12 @@ io.on("connection", (socket) => {
       socket.to(roomId).emit("user-disconnected", userId, userName);
       delete users[socket.id];
     });
+    socket.on("end-call", (roomId) => {
+      io.to(roomId).emit("call-ended"); // Gửi thông báo đến tất cả user trong phòng
+      if (roomUsers[roomId]) {
+        delete roomUsers[roomId]; // Xóa thông tin phòng gọi
+      }
+    });
   });
 });
 

@@ -1,5 +1,5 @@
 
-const socket = io("https://ltm-1.onrender.com");
+const socket = io("/");
 const videoGrid = document.getElementById("video-grid");
 const chatBox = document.getElementById("chat-box");
 const messageInput = document.getElementById("message-input");
@@ -11,6 +11,10 @@ const setNameButton = document.getElementById("set-name-button");
 
 const micButton = document.getElementById("toggle-mic");
 const cameraButton = document.getElementById("toggle-camera");
+const endCallButton = document.getElementById("end-call-button");
+const screenShareButton = document.getElementById("screen-share-button");
+let isScreenSharing = false;
+let screenStream;
 
 let myName;
 let myStream;
@@ -20,11 +24,6 @@ const peers = {};
 //   host: "/",
 //   port: "3001",
 // });
-//chạy trên mạng
-// const myPeer = new Peer(undefined, {
-//   host: "amazdo.com",
-//   path: "/peerjs",
-// });
 
 // Sử dụng trên Render
 const myPeer = new Peer(undefined, {
@@ -32,6 +31,16 @@ const myPeer = new Peer(undefined, {
   debug:3
 });
 
+
+
+
+
+// Nhận sự kiện từ server để ngắt kết nối
+socket.on("call-ended", () => {
+  myStream.getTracks().forEach(track => track.stop()); // Dừng tất cả các stream
+  Object.values(peers).forEach(peer => peer.close()); // Đóng tất cả các kết nối
+  window.location.href = "/"; // Chuyển về trang chủ
+});
 
 const myVideo = document.createElement("video");
 myVideo.muted = true;
@@ -74,14 +83,6 @@ micButton.addEventListener("click", () => {
     audioTracks[0].enabled = !enabled;
     micButton.querySelector("span").textContent = enabled ? "mic_off" : "mic";
 
-    // Cập nhật trạng thái micro cho video của chính mình
-    const myContainer = document.getElementById('video-container-me');
-    if (myContainer) {
-      const micIcon = myContainer.querySelector('.mic-status');
-      micIcon.textContent = !enabled ? 'mic' : 'mic_off';
-      micIcon.classList.toggle('mic-off', enabled);
-    }
-
     // Gửi trạng thái micro đến server
     socket.emit("toggle-mic", !enabled);
   }
@@ -98,6 +99,50 @@ cameraButton.addEventListener("click", () => {
 
     // Gửi trạng thái camera đến server
     socket.emit("toggle-camera", !enabled);
+  }
+});
+
+// Sự kiện khi click vào nút "call end"
+endCallButton.addEventListener("click", () => {
+  socket.emit("end-call", ROOM_ID); // Gửi yêu cầu kết thúc cuộc gọi đến server
+});
+
+// Xử lý chia sẻ màn hình
+screenShareButton.addEventListener("click", async () => {
+  if (!isScreenSharing) {
+    try {
+      screenStream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+      });
+
+      const screenTrack = screenStream.getVideoTracks()[0];
+
+      // Gửi stream màn hình cho tất cả các peer đang kết nối
+      for (let peerId in peers) {
+        const sender = peers[peerId].peerConnection
+          .getSenders()
+          .find((s) => s.track.kind === "video");
+        if (sender) {
+          sender.replaceTrack(screenTrack);
+        }
+      }
+
+      // Cập nhật stream local của chính mình
+      const videoTrack = myStream.getVideoTracks()[0];
+      myStream.removeTrack(videoTrack);
+      myStream.addTrack(screenTrack);
+
+      screenTrack.onended = () => {
+        stopScreenShare();
+      };
+
+      isScreenSharing = true;
+      screenShareButton.querySelector("span").textContent = "stop_screen_share";
+    } catch (err) {
+      console.error("Không thể chia sẻ màn hình:", err);
+    }
+  } else {
+    stopScreenShare();
   }
 });
 
@@ -146,93 +191,60 @@ socket.on("message-input-container", (name) => {
   }, 3000);
 });
 
-function connectToNewUser(userId, stream, userName) {
-  // Kiểm tra xem đã có kết nối với user này chưa
-  if (peers[userId]) {
-    console.log('Already connected to:', userId);
-    return;
-  }
-
+function connectToNewUser(userId, stream) {
   const call = myPeer.call(userId, stream);
-  const video = document.createElement('video');
-  
-  call.on('stream', (userVideoStream) => {
-    addVideoStream(video, userVideoStream, userId, userName);
+  const video = document.createElement("video");
+  call.on("stream", (userVideoStream) => {
+    addVideoStream(video, userVideoStream);
   });
-  
-  call.on('close', () => {
-    const container = document.getElementById(`video-container-${userId}`);
-    if (container) {
-      container.remove();
-    }
+  call.on("close", () => {
+    video.remove();
   });
 
-  peers[userId] = {
-    call,
-    stream: stream,
-    micEnabled: true
-  };
+  peers[userId] = call;
 }
 
-// function addVideoStream(video, stream) {
-//   video.srcObject = stream;
-//   video.addEventListener("loadedmetadata", () => {
-//     video.play();
-//   });
-//   videoGrid.append(video);
-// }
-
-
-function addVideoStream(video, stream, userId = 'me', userName = myName) {
-  // Kiểm tra xem container đã tồn tại chưa
-  const existingContainer = document.getElementById(`video-container-${userId}`);
-  if (existingContainer) {
-    return; // Nếu đã tồn tại thì không tạo mới
-  }
-
-  // Tạo container mới
-  const container = document.createElement('div');
-  container.className = 'video-container';
-  container.id = `video-container-${userId}`;
-
-  // Thêm video
+function addVideoStream(video, stream) {
   video.srcObject = stream;
-  video.addEventListener('loadedmetadata', () => {
+  video.addEventListener("loadedmetadata", () => {
     video.play();
   });
-  container.appendChild(video);
-
-  // Thêm thông tin người dùng
-  const userInfo = document.createElement('div');
-  userInfo.className = 'user-info';
-  
-  const nameSpan = document.createElement('span');
-  nameSpan.className = 'user-name';
-  nameSpan.textContent = userName || 'Unknown User';
-
-  const micStatus = document.createElement('span');
-  micStatus.className = 'mic-status material-icons';
-  micStatus.textContent = 'mic';
-
-  userInfo.appendChild(nameSpan);
-  userInfo.appendChild(micStatus);
-  container.appendChild(userInfo);
-
-  videoGrid.appendChild(container);
+  videoGrid.append(video);
 }
-
-socket.on('mic-toggle', (userId, enabled) => {
-  const container = document.getElementById(`video-container-${userId}`);
-  if (container) {
-    const micIcon = container.querySelector('.mic-status');
-    micIcon.textContent = enabled ? 'mic' : 'mic_off';
-    micIcon.classList.toggle('mic-off', !enabled);
-  }
-});
 
 function appendMessage(message) {
   const messageElement = document.createElement("div");
   messageElement.innerText = message;
   chatBox.append(messageElement);
   chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function stopScreenShare() {
+  const videoTrack = myStream.getVideoTracks()[0];
+  screenStream.getTracks().forEach((track) => track.stop());
+
+  navigator.mediaDevices
+    .getUserMedia({ video: true, audio: true })
+    .then((camStream) => {
+      const camTrack = camStream.getVideoTracks()[0];
+
+      for (let peerId in peers) {
+        const sender = peers[peerId].peerConnection
+          .getSenders()
+          .find((s) => s.track.kind === "video");
+        if (sender) {
+          sender.replaceTrack(camTrack);
+        }
+      }
+
+      myStream.removeTrack(videoTrack);
+      myStream.addTrack(camTrack);
+
+      const myVideoTrack = myVideo.srcObject.getVideoTracks()[0];
+      myVideo.srcObject.removeTrack(myVideoTrack);
+      myVideo.srcObject.addTrack(camTrack);
+
+      isScreenSharing = false;
+      screenShareButton.querySelector("span").textContent = "screen_share";
+    });
 }

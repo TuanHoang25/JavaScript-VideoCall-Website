@@ -1,401 +1,423 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <script>
+      const ROOM_ID = "<%= roomId %>";
+    </script>
+    <script
+      defer
+      src="https://unpkg.com/peerjs@1.2.0/dist/peerjs.min.js"
+    ></script>
+    <script src="/socket.io/socket.io.js" defer></script>
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"
+      integrity="sha512-Xm9qbB6Pu06k3PUwPj785dyTl6oHxgsv9nHp7ej7nCpAqGZT3OZpsELuCYX05DdonFpTlBpXMOxjavIAIUwr0w=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script defer src="script.js"></script>
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <script>
-    const ROOM_ID = "<%= roomId %>";
-  </script>
-  <script defer src="https://unpkg.com/peerjs@1.2.0/dist/peerjs.min.js"></script>
-  <script src="/socket.io/socket.io.js" defer></script>
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"
-    integrity="sha512-Xm9qbB6Pu06k3PUwPj785dyTl6oHxgsv9nHp7ej7nCpAqGZT3OZpsELuCYX05DdonFpTlBpXMOxjavIAIUwr0w=="
-    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script defer src="script.js"></script>
-  <style></style>
-  <title>Video Chat</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-size: 1rem;
-      font-family: Arial, Helvetica, sans-serif;
-    }
+    <style>
+    </style>
+    <title>Video Chat</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-size: 1rem;
+        font-family: Arial, Helvetica, sans-serif;
+      }
 
-    body {
-      background-color: #000;
-      color: #fff;
-      height: 100vh;
-      overflow: hidden;
-    }
+      body {
+        background-color: #000;
+        color: #fff;
+        height: 100vh;
+        overflow: hidden;
+      }
 
-    main {
-      height: 100%;
-      display: flex;
-      flex-flow: column;
-    }
+      main {
+        height: 100%;
+        display: flex;
+        flex-flow: column;
+      }
 
-    /* Toggle button styling */
-    #toggle-chat {
-      position: fixed;
-    }
+      /* Toggle button styling */
+      #toggle-chat {
+        position: fixed;
+      }
 
-    .container {
-      max-width: 1100px;
-      /* Tăng kích thước tối đa của container */
-      padding: 0;
-    }
+      .container {
+        max-width: 1100px;
+        /* Tăng kích thước tối đa của container */
+        padding: 0;
+      }
 
-    .col-md-4 {
-      padding: 0;
-    }
+      .col-md-4 {
+        padding: 0;
+      }
 
-    #video-grid {
-      margin-top: 10px;
-      display: grid;
-      /* Sử dụng Grid để bố trí các phần tử */
-      grid-template-columns: repeat(4, 1fr);
-      /* 4 cột với kích thước đều nhau */
-      gap: 15px;
-      /* Khoảng cách giữa các video */
-      width: 100%;
-    }
+      #video-grid {
+        margin-top: 10px;
+        display: grid;
+        /* Sử dụng Grid để bố trí các phần tử */
+        grid-template-columns: repeat(4, 1fr);
+        /* 4 cột với kích thước đều nhau */
+        gap: 15px;
+        /* Khoảng cách giữa các video */
+        width: 100%;
+      }
 
-    video {
-      border-radius: 8px;
-      overflow: hidden;
-      display: block;
-      height: 200px;
-      /* Chiều cao cố định của video */
-      width: 300px;
-      /* Chiều rộng sẽ tự động điều chỉnh theo kích thước của ô lưới */
-      object-fit: cover;
-      transform: scaleX(-1);
-      flex-shrink: 0;
-    }
+      video {
+        border-radius: 8px;
+        overflow: hidden;
+        display: block;
+        height: 200px;
+        /* Chiều cao cố định của video */
+        width: 300px;
+        /* Chiều rộng sẽ tự động điều chỉnh theo kích thước của ô lưới */
+        object-fit: cover;
+        transform: scaleX(-1);
+        flex-shrink: 0;
+      }
 
-    .controls {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      padding: 20px;
-      background-color: #202124;
-      border-top: 1px solid #3c4043;
-      z-index: 1;
-      /* Đảm bảo controls nằm trên các phần tử khác */
-    }
+      .controls {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 20px;
+        background-color: #202124;
+        border-top: 1px solid #3c4043;
+        z-index: 1;
+        /* Đảm bảo controls nằm trên các phần tử khác */
+      }
 
-    .control-button {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      border: none;
-      background-color: #3c4043;
-      color: white;
-      font-size: 24px;
-      cursor: pointer;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      transition: background-color 0.3s ease, transform 0.3s ease;
-      margin: 0 8px;
-      /* Tăng khoảng cách giữa các nút điều khiển */
-    }
+      .control-button {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        border: none;
+        background-color: #3c4043;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: background-color 0.3s ease, transform 0.3s ease;
+        margin: 0 8px;
+        /* Tăng khoảng cách giữa các nút điều khiển */
+      }
 
-    .control-button:hover {
-      background-color: #5f6368;
-      transform: scale(1.1);
-    }
+      .control-button:hover {
+        background-color: #5f6368;
+        transform: scale(1.1);
+      }
 
-    .end-call {
-      background-color: #ea4335;
-    }
+      .end-call {
+        background-color: #ea4335;
+      }
 
-    .end-call:hover {
-      background-color: #d93025;
-    }
+      .end-call:hover {
+        background-color: #d93025;
+      }
 
-    .meeting-info {
-      font-size: 17px;
-      color: #ffffffcc;
-    }
+      .meeting-info {
+        font-size: 17px;
+        color: #ffffffcc;
+      }
 
-    .video-container {
-      position: relative;
-      width: 300px;
-      height: 200px;
-    }
+      .video-container {
+        position: relative;
+        width: 300px;
+        height: 200px;
+      }
 
-    .video-container video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
+      .video-container video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
 
-    .user-info {
-      position: absolute;
-      bottom: 10px;
-      left: 10px;
-      right: 10px;
-      background: rgba(0, 0, 0, 0.7);
-      padding: 8px;
-      border-radius: 4px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      z-index: 1;
-    }
+      .user-info {
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+        right: 10px;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 8px;
+        border-radius: 4px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 1;
+      }
 
-    .user-name {
-      color: white;
-      font-size: 14px;
-      font-weight: 500;
-      margin-right: 8px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+      .user-name {
+        color: white;
+        font-size: 14px;
+        font-weight: 500;
+        margin-right: 8px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
 
-    .mic-status {
-      color: white;
-      font-size: 18px;
-      min-width: 24px;
-      text-align: center;
-    }
+      .mic-status {
+        color: white;
+        font-size: 18px;
+        min-width: 24px;
+        text-align: center;
+      }
 
-    .mic-off {
-      color: #ea4335;
-    }
+      .mic-off {
+        color: #ea4335;
+      }
 
-    #name-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
+      #name-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
 
-    #name-input-container {
-      background: white;
-      padding: 25px;
-      border-radius: 10px;
-      text-align: center;
-    }
+      #name-input-container {
+        background: white;
+        padding: 25px;
+        border-radius: 10px;
+        text-align: center;
+      }
 
-    #name-input-container h4 {
-      margin-top: 10px;
-      font-weight: bold;
-      text-align: center;
-      color: black;
-    }
+      #name-input-container h4 {
+        margin-top: 10px;
+        font-weight: bold;
+        text-align: center;
+        color: black;
+      }
 
-    #name-input {
-      width: 100%;
-      padding: 10px;
-      margin-top: 15px;
-    }
+      #name-input {
+        width: 100%;
+        padding: 10px;
+        margin-top: 15px;
+      }
 
-    #set-name-button {
-      margin-top: 15px;
-      padding: 10px 15px;
-      border: none;
-      background-color: #006419;
-      color: white;
-      cursor: pointer;
-    }
+      #set-name-button {
+        margin-top: 15px;
+        padding: 10px 15px;
+        border: none;
+        background-color: #006419;
+        color: white;
+        cursor: pointer;
+      }
 
-    #set-name-button:hover {
-      border: 1px solid #006419;
-      background-color: white;
-      color: black;
-    }
+      #set-name-button:hover {
+        border: 1px solid #006419;
+        background-color: white;
+        color: black;
+      }
 
-    /* Styling for the chat container */
-    #chat-container {
-      position: fixed;
-      top: 0;
-      right: -100%;
-      width: 380px;
-      height: 606px;
-      background-color: #1e1e1e;
-      /* Dark background */
-      color: #f0f0f0;
-      /* Light text color */
-      box-shadow: -2px 0 8px rgba(0, 0, 0, 0.5);
-      transition: right 0.3s ease;
-      z-index: 1000;
-      padding: 20px;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      /* Đảm bảo các thành phần được sắp xếp theo cột */
-    }
+      /* Styling for the chat container */
+      #chat-container {
+        position: fixed;
+        top: 0;
+        right: -100%;
+        width: 380px;
+        height: 606px;
+        background-color: #1e1e1e;
+        /* Dark background */
+        color: #f0f0f0;
+        /* Light text color */
+        box-shadow: -2px 0 8px rgba(0, 0, 0, 0.5);
+        transition: right 0.3s ease;
+        z-index: 1000;
+        padding: 20px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        /* Đảm bảo các thành phần được sắp xếp theo cột */
+      }
 
-    /* Hiển thị chat container khi có class active */
-    #chat-container.active {
-      right: 0;
-    }
+      /* Hiển thị chat container khi có class active */
+      #chat-container.active {
+        right: 0;
+      }
 
-    #chat-container h4 {
-      text-align: center;
-      font-weight: bold;
-      color: white;
-      margin-top: 10px;
-    }
+      #chat-container h4 {
+        text-align: center;
+        font-weight: bold;
+        color: white;
+        margin-top: 10px;
+      }
 
-    #chat-box {
-      flex: 1;
-      /* Đảm bảo chat-box chiếm hết không gian trống còn lại */
-      overflow-y: auto;
-      list-style-type: none;
-      padding: 0;
-      margin-top: 20px;
-      font-size: 17px;
-    }
+      #chat-box {
+        flex: 1;
+        /* Đảm bảo chat-box chiếm hết không gian trống còn lại */
+        overflow-y: auto;
+        list-style-type: none;
+        padding: 0;
+        margin-top: 20px;
+        font-size: 17px;
+      }
 
-    #message-input-container {
-      padding-top: 10px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+      #message-input-container {
+        padding-top: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
 
-    #message-input {
-      flex: 1;
-      border-radius: 20px;
-    }
+      #message-input {
+        flex: 1;
+        border-radius: 20px;
+      }
 
-    #send-button {
-      border-radius: 20px;
-      padding: 10px 20px;
-      font-size: 14px;
-      background-color: #006419;
-      /* Bright accent color */
-      color: #fff;
-      border: none;
-    }
+      #send-button {
+        border-radius: 20px;
+        padding: 10px 20px;
+        font-size: 14px;
+        background-color: #006419;
+        /* Bright accent color */
+        color: #fff;
+        border: none;
+      }
 
-    #send-button:hover {
-      border: 1px solid #006419;
-      background-color: white;
-      color: black;
-    }
-  </style>
-</head>
+      #send-button:hover {
+        border: 1px solid #006419;
+        background-color: white;
+        color: black;
+      }
+    </style>
+  </head>
 
-<body>
-  <main class="container">
-    <div class="row">
-      <div class="col-md-4 col-sm-6">
-        <div id="video-grid">
+  <body>
+    <main class="container">
+      <div class="row">
+        <div class="col-md-4 col-sm-6">
+          <div id="video-grid"></div>
+        </div>
+        <!-- Chat Section -->
+        <div id="chat-container">
+          <h4>TIN NHẮN TRONG CUỘC GỌI</h4>
+          <hr />
+          <div id="chat-box"></div>
+          <div id="message-input-container">
+            <input
+              type="text"
+              id="message-input"
+              class="form-control"
+              placeholder="Nhập tin nhắn"
+              required
+            />
+            <button id="send-button">Gửi</button>
+          </div>
+        </div>
+        <div id="name-modal">
+          <div id="name-input-container">
+            <h4>TÊN CỦA BẠN</h4>
+            <input
+              type="text"
+              id="name-input"
+              class="form-control"
+              placeholder="Nhập tên của bạn"
+            />
+            <button id="set-name-button">OK</button>
+          </div>
         </div>
       </div>
-      <!-- Chat Section -->
-      <div id="chat-container">
-        <h4>TIN NHẮN TRONG CUỘC GỌI</h4>
-        <hr>
-        <div id="chat-box"></div>
-        <div id="message-input-container">
-          <input type="text" id="message-input" class="form-control" placeholder="Nhập tin nhắn" required>
-          <button id="send-button">Gửi</button>
+    </main>
+    <div class="controls d-flex justify-content-between align-items-center">
+      <div class="left-controls d-flex align-items-center">
+        <div class="meeting-info">
+          <span id="current-time"></span> | <span id="room-link"></span>
         </div>
       </div>
-      <div id="name-modal">
-        <div id="name-input-container">
-          <h4>TÊN CỦA BẠN</h4>
-          <input type="text" id="name-input" class="form-control" placeholder="Nhập tên của bạn">
-          <button id="set-name-button">OK</button>
-        </div>
+      <div class="center-controls d-flex align-items-center">
+        <button class="control-button" id="toggle-mic">
+          <span class="material-icons">mic</span>
+        </button>
+        <button class="control-button" id="toggle-camera">
+          <span class="material-icons">videocam</span>
+        </button>
+        <button class="control-button">
+          <span class="material-icons">pan_tool</span>
+        </button>
+        <button class="control-button" id="screen-share-button">
+          <span class="material-icons">screen_share</span>
+        </button>
+        <button class="control-button">
+          <span class="material-icons">more_vert</span>
+        </button>
+        <button class="control-button end-call" id="end-call-button">
+          <span class="material-icons">call_end</span>
+        </button>
+      </div>
+      <div class="right-controls d-flex align-items-center">
+        <button class="control-button">
+          <span class="material-icons">info</span>
+        </button>
+        <button class="control-button" id="people-button">
+          <span class="material-icons">people</span>
+        </button>
+        <button class="control-button" id="toggle-chat">
+          <span class="material-icons">chat</span>
+        </button>
       </div>
     </div>
-  </main>
-  <div class="controls d-flex justify-content-between align-items-center">
-    <div class="left-controls d-flex align-items-center">
-      <div class="meeting-info">
-        <span id="current-time"></span> | <span id="room-link"></span>
-      </div>
-    </div>
-    <div class="center-controls d-flex align-items-center">
-      <button class="control-button" id="toggle-mic">
-        <span class="material-icons">mic</span>
-      </button>
-      <button class="control-button" id="toggle-camera">
-        <span class="material-icons">videocam</span>
-      </button>
-      <button class="control-button">
-        <span class="material-icons">pan_tool</span>
-      </button>
-      <button class="control-button">
-        <span class="material-icons">screen_share</span>
-      </button>
-      <button class="control-button">
-        <span class="material-icons">more_vert</span>
-      </button>
-      <button href="/" class="control-button end-call">
-        <span class="material-icons">call_end</span>
-      </button>
-    </div>
-    <div class="right-controls d-flex align-items-center">
-      <button class="control-button">
-        <span class="material-icons">info</span>
-      </button>
-      <button class="control-button" id="people-button">
-        <span class="material-icons">people</span>
-      </button>
-      <button class="control-button" id="toggle-chat">
-        <span class="material-icons">chat</span>
-      </button>
-    </div>
-  </div>
-  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const toggleChatBtn = document.getElementById('toggle-chat');
-      const chatContainer = document.getElementById('chat-container');
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const toggleChatBtn = document.getElementById("toggle-chat");
+        const chatContainer = document.getElementById("chat-container");
 
-      toggleChatBtn.addEventListener('click', () => {
-        chatContainer.classList.toggle('active');
+        toggleChatBtn.addEventListener("click", () => {
+          chatContainer.classList.toggle("active");
+        });
       });
-    });
-    document.addEventListener('DOMContentLoaded', () => {
-      const currentTimeElement = document.getElementById('current-time');
-      const roomLinkElement = document.getElementById('room-link');
+      document.addEventListener("DOMContentLoaded", () => {
+        const currentTimeElement = document.getElementById("current-time");
+        const roomLinkElement = document.getElementById("room-link");
 
-      // Cập nhật thời gian hiện tại
-      function updateTime() {
-        const now = new Date();
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        currentTimeElement.textContent = `${hours}:${minutes}`;
-      }
+        // Cập nhật thời gian hiện tại
+        function updateTime() {
+          const now = new Date();
+          const hours = String(now.getHours()).padStart(2, "0");
+          const minutes = String(now.getMinutes()).padStart(2, "0");
+          currentTimeElement.textContent = `${hours}:${minutes}`;
+        }
 
-      // Cập nhật liên kết của phòng (phần sau của URL)
-      function updateRoomLink() {
-        const urlPath = window.location.pathname; // Lấy phần sau của URL
-        const roomId = urlPath.substring(1); // Loại bỏ dấu '/' ở đầu
-        roomLinkElement.textContent = roomId;
-      }
+        // Cập nhật liên kết của phòng (phần sau của URL)
+        function updateRoomLink() {
+          const urlPath = window.location.pathname; // Lấy phần sau của URL
+          const roomId = urlPath.substring(1); // Loại bỏ dấu '/' ở đầu
+          roomLinkElement.textContent = roomId;
+        }
 
-      // Gọi các hàm để cập nhật khi trang được tải
-      updateTime();
-      updateRoomLink();
+        // Gọi các hàm để cập nhật khi trang được tải
+        updateTime();
+        updateRoomLink();
 
-      // Cập nhật thời gian mỗi phút
-      setInterval(updateTime, 60000);
-    });
-  </script>
-</body>
-
+        // Cập nhật thời gian mỗi phút
+        setInterval(updateTime, 60000);
+      });
+    </script>
+  </body>
 </html>
